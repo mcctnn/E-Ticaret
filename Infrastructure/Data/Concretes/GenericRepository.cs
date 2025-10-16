@@ -11,17 +11,12 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
         context.Set<T>().Add(entity);
     }
 
-    public async Task<Int32> CountAsync(CancellationToken cancellationToken)
-    {
-        return await context.Set<T>().CountAsync(cancellationToken);
-    }
-
     public void Remove(T entity)
     {
         context.Set<T>().Remove(entity);
     }
 
-    public Boolean Exists(Guid id)
+    public bool Exists(Guid id)
     {
         return context.Set<T>().Any(e => e.Id == id);
     }
@@ -36,7 +31,7 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
         return await context.Set<T>().ToListAsync(cancellationToken);
     }
 
-    public async Task<Boolean> SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
     {
         return await context.SaveChangesAsync(cancellationToken) > 0;
     }
@@ -62,7 +57,7 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
         return SpecificationEvaluator<T>.GetQuery(context.Set<T>().AsQueryable(), spec);
     }
     public async Task<IReadOnlyList<TResult>> ListAsync<TResult>(ISpecification<T, TResult> spec, CancellationToken cancellationToken)
-    {        
+    {
         return await ApplySpecification(spec).ToListAsync(cancellationToken);
     }
 
@@ -73,5 +68,13 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
     private IQueryable<TResult> ApplySpecification<TResult>(ISpecification<T, TResult> spec)
     {
         return SpecificationEvaluator<T>.GetQuery<T, TResult>(context.Set<T>().AsQueryable(), spec);
+    }
+
+    public async Task<int> CountAsync(ISpecification<T> spec, CancellationToken cancellationToken)
+    {
+        var query = context.Set<T>().AsQueryable();
+        query = spec.ApplyCriteria(query);
+
+        return await query.CountAsync(cancellationToken);
     }
 }

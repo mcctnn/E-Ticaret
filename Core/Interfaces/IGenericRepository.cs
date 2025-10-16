@@ -8,11 +8,11 @@ public interface IGenericRepository<T> where T : BaseEntity
     Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec, CancellationToken cancellationToken);
     Task<T?> GetEntityWithSpecAsync(ISpecification<T> spec, CancellationToken cancellationToken);
     Task<IReadOnlyList<TResult>> ListAsync<TResult>(ISpecification<T, TResult> spec, CancellationToken cancellationToken);
-    Task<TResult?> GetEntityWithSpecAsync<TResult>(ISpecification<T,TResult> spec, CancellationToken cancellationToken);
+    Task<TResult?> GetEntityWithSpecAsync<TResult>(ISpecification<T, TResult> spec, CancellationToken cancellationToken);
     void Add(T entity);
     void Update(T entity);
     void Remove(T entity);
-    Task<int> CountAsync(CancellationToken cancellationToken);
+    Task<int> CountAsync(ISpecification<T> spec, CancellationToken cancellationToken);
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken);
     bool Exists(Guid id);
 }

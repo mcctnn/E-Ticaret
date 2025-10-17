@@ -1,13 +1,10 @@
-﻿using API.RequestHelpers;
-using Core.Entities;
+﻿using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
 public class ProductsController(IGenericRepository<Product> repository) : BaseApiController
 {
 

@@ -1,4 +1,5 @@
 ﻿namespace Core.Specifications;
+
 public class ProductSpecParams
 {
     private const int MaxPageSize = 50;
@@ -35,11 +36,11 @@ public class ProductSpecParams
 
     public string? Sort { get; set; }
 
-    private string? _searchTerm;
-    public string SearchTerm
+    private string? _search;
+    public string Search
     {
-        get => _searchTerm ?? "";
-        set => _searchTerm = value.ToLower();
+        get => _search ?? "";
+        set => _search = value.ToLower();
     }
 
 }

@@ -1,0 +1,21 @@
+<mat-form-field appearance="outline" class="w-full mb-3">
+    <mat-label>{{label}}</mat-label>
+    <input [formControl]="control" matInput type={{type}} placeholder={{label}} />
+    @if (control.hasError('required')) {
+    <mat-error>{{label}} is required</mat-error>
+    }
+    @if (control.hasError('email')) {
+    <mat-error>Email is invalid</mat-error>
+    }
+    @if (control.hasError('minlength')) {
+    <mat-error>Password must be at least 6 characters long</mat-error>
+    }
+    @if (control.hasError('maxlength')) {
+    <mat-error>Password cannot exceed 20 characters</mat-error>
+    }
+    @if (control.hasError('pattern')) {
+    <mat-error>
+        Password must include at least one uppercase, one lowercase, one number, and one special character
+    </mat-error>
+    }
+</mat-form-field>

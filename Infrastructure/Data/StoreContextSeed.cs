@@ -2,9 +2,10 @@
 using System.Text.Json;
 
 namespace Infrastructure.Data;
+
 public class StoreContextSeed
 {
-    public static async Task SeedAsync(StoreContext context,CancellationToken cancellationToken)
+    public static async Task SeedAsync(StoreContext context, CancellationToken cancellationToken)
     {
         if (!context.Products.Any())
         {
@@ -17,6 +18,18 @@ public class StoreContextSeed
             context.Products.AddRange(products);
 
             await context.SaveChangesAsync(cancellationToken);
-        }        
+        }
+        if (!context.DeliveryMethods.Any())
+        {
+            var dmData = await File.ReadAllTextAsync("../Infrastructure/Data/SeedData/delivery.json");
+
+            var dm = JsonSerializer.Deserialize<List<DeliveryMethod>>(dmData);
+
+            if (dm == null) return;
+
+            context.DeliveryMethods.AddRange(dm);
+
+            await context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

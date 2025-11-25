@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 namespace Core.Specifications;
+
 public class BaseSpecification<T>(Expression<Func<T, bool>>? criteria) : ISpecification<T>
 {
     protected BaseSpecification() : this(null) { }
@@ -19,6 +20,10 @@ public class BaseSpecification<T>(Expression<Func<T, bool>>? criteria) : ISpecif
 
     public bool IsPagingEnabled { get; private set; }
 
+    public List<Expression<Func<T, Object>>> Includes { get; } = [];
+
+    public List<String> IncludeStrings { get; } = [];
+
     public IQueryable<T> ApplyCriteria(IQueryable<T> query)
     {
         if (Criteria != null)
@@ -29,6 +34,8 @@ public class BaseSpecification<T>(Expression<Func<T, bool>>? criteria) : ISpecif
         return query;
     }
 
+    protected void AddInclude(Expression<Func<T, object>> includeExpression) => Includes.Add(includeExpression);
+    protected void AddInclude(string includeString) => IncludeStrings.Add(includeString);
     protected void AddOrderBy(Expression<Func<T, object>> orderByExpression) => OrderBy = orderByExpression;
     protected void AddOrderByDescending(Expression<Func<T, object>> orderByDescExpression) => OrderByDescending = orderByDescExpression;
     protected void ApplyDistinct() => IsDistinct = true;

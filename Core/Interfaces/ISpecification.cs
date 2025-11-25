@@ -1,11 +1,14 @@
 ﻿using System.Linq.Expressions;
 
 namespace Core.Interfaces;
+
 public interface ISpecification<T>
 {
     Expression<Func<T, bool>>? Criteria { get; }
     Expression<Func<T, object>>? OrderBy { get; }
     Expression<Func<T, object>>? OrderByDescending { get; }
+    List<Expression<Func<T, object>>> Includes { get; }//include için
+    List<string> IncludeStrings { get; }//theninclude için
     bool IsDistinct { get; }
     int Take { get; }
     int Skip { get; }

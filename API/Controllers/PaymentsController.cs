@@ -1,13 +1,23 @@
-﻿using Core.Entities;
+﻿using API.Extensions;
+using API.SignalR;
+using Core.Entities;
+using Core.Entities.OrderAggregate;
 using Core.Interfaces;
+using Core.Specifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Stripe;
 
 namespace API.Controllers;
 
 public class PaymentsController(IPaymentService paymentService,
-    IUnitOfWork unitOfWork) : BaseApiController
+    IUnitOfWork unitOfWork, ILogger<PaymentsController> logger,
+    IConfiguration configuration,
+    IHubContext<NotificationHub> hubContext) : BaseApiController
 {
+    private readonly string _whSecret = configuration["StripeSettings:WhSecret"]!;
+
     [Authorize]
     [HttpPost("{cartId}")]
     public async Task<ActionResult<ShoppingCart>> CreateOrUpdatePaymentIntent(string cartId)
@@ -22,5 +32,71 @@ public class PaymentsController(IPaymentService paymentService,
     {
         var methods = await unitOfWork.Repository<DeliveryMethod>().ListAllAsync(CancellationToken.None);
         return Ok(methods);
+    }
+
+    [HttpPost("webhook")]
+    public async Task<IActionResult> StripeWebhook()
+    {
+        var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+        try
+        {
+            var stripeEvent = ConstructStripeEvent(json);
+            if (stripeEvent.Data.Object is not PaymentIntent intent)
+            {
+                return BadRequest("Invalid event data");
+            }
+
+            await HandlePaymentIntentSucceeded(intent);
+            return Ok();
+        }
+        catch (StripeException ex)
+        {
+            logger.LogError(ex, "Stripe webhook error");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Stripe webhook error");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred");
+            return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred");
+        }
+    }
+
+    private async Task HandlePaymentIntentSucceeded(PaymentIntent intent)
+    {
+        if (intent.Status == "succeeded")
+        {
+            var spec = new OrderSpecification(intent.Id, true);
+            var order = await unitOfWork.Repository<Order>().GetEntityWithSpecAsync(spec, CancellationToken.None) ?? throw new Exception("Order not found ");
+
+            if ((long)order.GetTotal() * 100 != intent.Amount)
+            {
+                order.Status = OrderStatus.PaymentMismatch;
+            }
+            else
+            {
+                order.Status = OrderStatus.PaymentReceived;
+            }
+
+            await unitOfWork.Complete();
+
+            var connectionId = NotificationHub.GetConnectionIdByEmail(order.BuyerEmail);
+            if (!string.IsNullOrEmpty(connectionId))
+            {
+                await hubContext.Clients.Client(connectionId).SendAsync("OrderCompleteNotification", order.ToDto());
+            }
+        }
+    }
+
+    private Event ConstructStripeEvent(String json)
+    {
+        try
+        {
+            return EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], _whSecret);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to construct stripe event");
+            throw new StripeException("Invalid signature");
+        }
     }
 }

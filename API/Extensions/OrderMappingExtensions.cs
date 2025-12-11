@@ -19,6 +19,7 @@ public static class OrderMappingExtensions
             ShippingAddress = order.ShippingAddress,
             Status = order.Status.ToString(),
             Subtotal = order.Subtotal,
+            Discount = order.Discount,
             Total = order.GetTotal(),
             OrderDate = order.OrderDate,
         };

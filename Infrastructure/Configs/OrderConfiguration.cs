@@ -14,6 +14,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             x => x.ToString(),
             x => (OrderStatus)Enum.Parse(typeof(OrderStatus), x));
         builder.Property(o => o.Subtotal).HasColumnType("decimal(18,2)");
+        builder.Property(o => o.Discount).HasColumnType("decimal(18,2)");
         builder.HasMany(o => o.OrderItems).WithOne().OnDelete(DeleteBehavior.Cascade);
         builder.Property(o => o.OrderDate).HasConversion(
             d => d.ToUniversalTime(),

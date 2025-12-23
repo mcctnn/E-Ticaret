@@ -5,6 +5,7 @@ using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Data.Concretes;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
@@ -33,7 +34,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(config =>
 });
 builder.Services.AddSingleton<ICartService, CartService>();
 builder.Services.AddAuthorization();
-builder.Services.AddIdentityApiEndpoints<AppUser>().AddEntityFrameworkStores<StoreContext>();
+builder.Services.AddIdentityApiEndpoints<AppUser>().AddRoles<IdentityRole<Guid>>().AddEntityFrameworkStores<StoreContext>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
@@ -52,8 +53,9 @@ try
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<StoreContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
     await context.Database.MigrateAsync();
-    await StoreContextSeed.SeedAsync(context, CancellationToken.None);
+    await StoreContextSeed.SeedAsync(context, userManager, CancellationToken.None);
 }
 catch (Exception ex)
 {

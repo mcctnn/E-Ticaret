@@ -26,6 +26,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     if (err.status === HttpStatusCode.Unauthorized) {
       snackbar.error(err.error.title || err.error);
     }
+    if (err.status === HttpStatusCode.Forbidden) {
+      snackbar.error("Forbidden");
+    }
     if (err.status === HttpStatusCode.NotFound) {
       router.navigateByUrl('/not-found');
     }

@@ -1,6 +1,5 @@
 ﻿using Core.Entities;
 using Core.Entities.OrderAggregate;
-using Infrastructure.Configs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,8 +18,6 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser,
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductConfiguration).Assembly);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderConfiguration).Assembly);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderItemConfiguration).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreContext).Assembly);
     }
 }

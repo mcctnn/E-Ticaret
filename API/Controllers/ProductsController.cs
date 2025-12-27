@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using API.RequestHelpers;
+using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ namespace API.Controllers;
 
 public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
 {
-
+    [Cache(600)]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(
         [FromQuery] ProductSpecParams productParams, CancellationToken cancellationToken)
@@ -28,6 +29,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return Ok(product);
     }
 
+    [InvalidateCache("api/products|")]
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product, CancellationToken cancellationToken)
@@ -42,6 +44,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return BadRequest("Failed to creating product");
     }
 
+    [InvalidateCache("api/products|")]
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken)
